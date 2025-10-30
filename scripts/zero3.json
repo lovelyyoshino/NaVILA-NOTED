@@ -1,28 +1,47 @@
 {
+    // ==================== 混合精度训练配置 ====================
+    // FP16（16位浮点数）配置
     "fp16": {
-        "enabled": "auto",
-        "loss_scale": 0,
-        "loss_scale_window": 1000,
-        "initial_scale_power": 16,
-        "hysteresis": 2,
-        "min_loss_scale": 1
+        "enabled": "auto",  // 自动启用FP16（根据硬件支持情况）
+        "loss_scale": 0,  // 损失缩放系数，0表示动态缩放
+        "loss_scale_window": 1000,  // 损失缩放窗口大小，用于动态调整缩放系数
+        "initial_scale_power": 16,  // 初始缩放系数为2^16
+        "hysteresis": 2,  // 滞后参数，防止缩放系数频繁变化
+        "min_loss_scale": 1  // 最小损失缩放系数
     },
+    // BF16（Brain Float 16）配置 - Google提出的16位浮点格式
     "bf16": {
-        "enabled": "auto"
+        "enabled": "auto"  // 自动启用BF16（优先于FP16，适用于A100等新GPU）
     },
-    "train_micro_batch_size_per_gpu": "auto",
-    "train_batch_size": "auto",
-    "gradient_accumulation_steps": "auto",
+    
+    // ==================== 批次大小配置 ====================
+    "train_micro_batch_size_per_gpu": "auto",  // 每个GPU的微批次大小（自动设置）
+    "train_batch_size": "auto",  // 总的训练批次大小（自动设置）
+    "gradient_accumulation_steps": "auto",  // 梯度累积步数（自动设置）
+    
+    // ==================== ZeRO优化配置（核心部分）====================
+    // ZeRO (Zero Redundancy Optimizer) - DeepSpeed的核心优化技术
+    // 通过对模型状态进行分片来减少内存冗余，实现大模型训练
     "zero_optimization": {
-        "stage": 3,
-        "overlap_comm": true,
-        "contiguous_gradients": true,
-        "sub_group_size": 1e9,
-        "reduce_bucket_size": "auto",
-        "stage3_prefetch_bucket_size": "auto",
-        "stage3_param_persistence_threshold": "auto",
-        "stage3_max_live_parameters": 1e9,
-        "stage3_max_reuse_distance": 1e9,
-        "stage3_gather_16bit_weights_on_model_save": true
+        "stage": 3,  // ZeRO阶段3：对优化器状态、梯度和模型参数都进行分片
+                     // Stage 1: 只分片优化器状态
+                     // Stage 2: 分片优化器状态 + 梯度
+                     // Stage 3: 分片优化器状态 + 梯度 + 模型参数（最大内存节省）
+        
+        "overlap_comm": true,  // 重叠通信和计算，提高效率
+        "contiguous_gradients": true,  // 使用连续内存存储梯度，减少内存碎片
+        "sub_group_size": 1e9,  // 子组大小（10亿），控制参数分组粒度
+        
+        // Bucket相关配置 - 控制通信粒度
+        "reduce_bucket_size": "auto",  // 梯度归约的bucket大小（自动）
+        "stage3_prefetch_bucket_size": "auto",  // Stage 3预取bucket大小（自动）
+        "stage3_param_persistence_threshold": "auto",  // 参数持久化阈值（自动）
+        
+        // Stage 3特定配置 - 控制内存使用
+        "stage3_max_live_parameters": 1e9,  // 最大活跃参数数量（10亿），控制显存峰值
+        "stage3_max_reuse_distance": 1e9,  // 最大参数重用距离（10亿）
+        "stage3_gather_16bit_weights_on_model_save": true  // 保存模型时收集16位权重
+                                                            // true: 直接保存FP16/BF16权重（节省空间）
+                                                            // false: 保存FP32权重（保持完整精度）
     }
 }

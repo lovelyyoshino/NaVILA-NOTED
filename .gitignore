@@ -58,3 +58,6 @@ evaluation/habitat-lab
 evaluation/habitat-sim
 evaluation/data
 evaluation/eval_out
+
+NaVILA-Dataset/
+navila-llama3-8b-8f/
