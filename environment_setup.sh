@@ -6,7 +6,7 @@ eval "$(/home/lenovo/miniconda3/bin/conda shell.bash hook)"
 
 CONDA_ENV=${1:-""}
 if [ -n "$CONDA_ENV" ]; then
-    conda create -n $CONDA_ENV python=3.10 -y
+    conda create -n $CONDA_ENV python=3.9 -y
     conda activate $CONDA_ENV
 else
     echo "Skipping conda environment creation. Make sure you have the correct environment activated."
